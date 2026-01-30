@@ -293,11 +293,83 @@ const toast = new ToastManager();`;
           .bind(source, content, author)
           .run();
 
+        const feedbackId = result.meta.last_row_id;
+
+        // Analyze feedback asynchronously in the background
+        ctx.waitUntil(
+          (async () => {
+            try {
+              const content = await env.DB.prepare('SELECT content FROM feedback WHERE id = ?')
+                .bind(feedbackId)
+                .first();
+
+              if (content) {
+                // Perform AI analysis
+                const aiPrompt = `Analyze this customer feedback and respond with ONLY a JSON object.
+
+Feedback: "${content.content}"
+
+Respond with this exact JSON format:
+{
+  "sentiment": "positive" or "neutral" or "negative",
+  "score": a number between -1.0 and 1.0,
+  "urgency": "low" or "medium" or "high" or "critical",
+  "themes": ["theme1", "theme2"]
+}`;
+
+                const aiResponse = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+                  messages: [
+                    { role: 'system', content: 'You are a feedback analysis expert. Always respond with valid JSON only.' },
+                    { role: 'user', content: aiPrompt }
+                  ],
+                  temperature: 0.3,
+                  max_tokens: 200
+                });
+
+                const responseText = aiResponse.response.trim();
+                const jsonMatch = responseText.match(/\{[\s\S]*?\}/);
+                
+                if (jsonMatch) {
+                  const analysis = JSON.parse(jsonMatch[0]);
+                  
+                  // Update feedback with analysis
+                  await env.DB.prepare(
+                    'UPDATE feedback SET sentiment = ?, sentiment_score = ?, urgency = ?, themes = ?, processed = 1 WHERE id = ?'
+                  )
+                    .bind(
+                      analysis.sentiment || 'neutral',
+                      analysis.score || 0,
+                      analysis.urgency || 'medium',
+                      JSON.stringify(analysis.themes || []),
+                      feedbackId
+                    )
+                    .run();
+
+                  // Generate and store embedding for semantic search
+                  try {
+                    const { generateEmbedding } = await import('./embeddings.js');
+                    const embedding = await generateEmbedding(content.content, env);
+                    await env.VECTORIZE.upsert([{
+                      id: feedbackId.toString(),
+                      values: embedding,
+                      metadata: { content: content.content }
+                    }]);
+                  } catch (embeddingError) {
+                    console.error('Embedding generation failed:', embeddingError);
+                  }
+                }
+              }
+            } catch (analysisError) {
+              console.error('Auto-analysis failed:', analysisError);
+            }
+          })()
+        );
+
         return new Response(
           JSON.stringify({
             success: true,
-            id: result.meta.last_row_id,
-            message: 'Feedback created successfully',
+            id: feedbackId,
+            message: 'Feedback created and analyzed successfully',
           }),
           {
             status: 201,

@@ -4,7 +4,7 @@
  */
 // {
 // 	"$schema": "node_modules/wrangler/config-schema.json",
-// 	"name": "my-first-worker",
+// 	"name": "feedback-dashboard",
 // 	"main": "src/index.js",
 // 	"compatibility_date": "2025-09-27",
 // 	"observability": {
@@ -47,7 +47,7 @@
 // 	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
 // }
 {
-	"name": "my-first-worker",
+	"name": "feedback-dashboard",
 	"main": "src/index.js",
 	"compatibility_date": "2024-01-01",
 	"d1_databases": [

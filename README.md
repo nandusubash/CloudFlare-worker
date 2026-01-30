@@ -96,7 +96,7 @@ Key settings in `wrangler.jsonc`:
 
 ```jsonc
 {
-  "name": "my-first-worker",
+  "name": "feedback-dashboard",
   "compatibility_date": "2024-01-01",
   "d1_databases": [{
     "binding": "DB",
