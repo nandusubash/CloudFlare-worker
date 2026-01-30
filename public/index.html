@@ -26,6 +26,12 @@
       margin: 0;
       letter-spacing: -0.01em;
     }
+    .header-subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.8125rem;
+      margin-top: 0.25rem;
+      font-weight: 400;
+    }
     .header-content {
       display: flex;
       justify-content: space-between;
@@ -144,6 +150,44 @@
     .badge-on-track { background: #deebff; color: #0052cc; }
     .badge-at-risk { background: #fff4e6; color: #ff8b00; }
     .badge-off-track { background: #ffebe6; color: #de350b; }
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e1e4e8;
+    }
+    .empty-state h3 {
+      font-size: 1.25rem;
+      color: #1d2125;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .empty-state p {
+      color: #626f86;
+      font-size: 0.9375rem;
+      margin-bottom: 1.5rem;
+    }
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+    .btn-primary {
+      background: #5e6ad2;
+      color: white;
+      border: none;
+      padding: 0.625rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary:hover {
+      background: #4c5ac8;
+      transform: translateY(-1px);
+    }
   </style>
   <link rel="stylesheet" href="styles.css?v=3.0">
   <link rel="stylesheet" href="toast.css?v=3.0">
@@ -151,7 +195,10 @@
 <body>
   <div class="header">
     <div class="header-content">
-      <h1>Feedback Dashboard</h1>
+      <div>
+        <h1>Feedback Dashboard</h1>
+        <p class="header-subtitle">Centralized customer feedback with AI-powered insights</p>
+      </div>
       <div class="header-actions">
         <div class="analysis-status" id="analysisStatus">
           <span id="statusText">Live</span>
@@ -165,11 +212,11 @@
   <div class="metrics-grid">
     <div class="metric-card">
       <div class="metric-label">Total Feedback</div>
-      <div class="metric-value" id="totalFeedback">0</div>
+      <div class="metric-value" id="totalFeedback">Loading...</div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Top Themes</div>
-      <div id="topThemesDisplay" style="font-size: 0.875rem; color: #667eea; font-weight: 600;">-</div>
+      <div id="topThemesDisplay" style="font-size: 0.875rem; color: #667eea; font-weight: 600;">Loading...</div>
     </div>
   </div>
 
@@ -289,9 +336,6 @@
       </div>
       <div class="modal-body attachment-modal-body" id="attachmentModalBody">
       </div>
-      <div class="modal-footer">
-        <a class="btn btn-primary" id="downloadAttachmentBtn" download>Download</a>
-      </div>
     </div>
   </div>
 
@@ -394,8 +438,24 @@
 
       tbody.innerHTML = '';
 
+      // Show empty state if no feedback at all
+      if (allFeedback.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="7" style="padding: 0; border: none;">
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <h3>No feedback yet</h3>
+              <p>Start by adding your first feedback item or connect your data sources</p>
+              <button class="btn-primary" onclick="document.getElementById('addFeedbackFab').click()">Add Feedback</button>
+            </div>
+          </td></tr>
+        `;
+        return;
+      }
+
+      // Show filtered empty state
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #718096;">No feedback found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #718096;">No feedback matches your filters</td></tr>';
         return;
       }
 
