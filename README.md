@@ -170,18 +170,7 @@ CloudFlare-worker/
 
 No environment variables needed! All configuration is in `wrangler.jsonc` and uses Cloudflare bindings.
 
-## Cost Estimate
 
-For 10K monthly active users:
-- Workers: ~$5/month
-- D1: Free tier
-- Workers AI: ~$10/month
-- Vectorize: ~$5/month
-- R2: ~$1/month
-- KV: Free tier
-- Workflows: ~$2/month
-
-**Total: ~$23/month**
 
 ## License
 
